@@ -1,5 +1,6 @@
 package fr.sw.img.service;
 
+import fr.sw.fwk.common.Logger;
 import fr.sw.fwk.dao.DAO;
 import fr.sw.fwk.dao.DaoException;
 import fr.sw.img.data.ImageDescription;
@@ -16,6 +17,7 @@ import java.util.List;
 public class ImageService {
 
     private final DAO<ImageDescription> dao;
+    private final Logger logger = new Logger(ImageService.class);
 
     public ImageService() {
         this(false);
@@ -25,6 +27,7 @@ public class ImageService {
             dao = new ImageDB();
         else
             dao = new ImageInMemory();
+        logger.log("DAO : " + dao.getClass().getName());
     }
 
     public void createOrUpdate(ImageDescription image) {

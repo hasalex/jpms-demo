@@ -44,11 +44,13 @@ public class Configuration {
         Configuration configuration = new Configuration();
         configuration.setPort(8080);
         configuration.setDb("jdbc:h2:mem:");
+        configuration.setPersistent(false);
         return configuration;
     }
 
     private int port;
     private String db;
+    private boolean persistent;
 
     public int getPort() {
         return port;
@@ -66,6 +68,15 @@ public class Configuration {
     @XmlElement
     public void setDb(String db) {
         this.db = db;
+    }
+
+    public boolean isPersistent() {
+        return persistent;
+    }
+
+    @XmlElement
+    public void setPersistent(boolean persistent) {
+        this.persistent = persistent;
     }
 
     @Override
