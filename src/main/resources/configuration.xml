@@ -1,4 +1,5 @@
 <configuration>
     <port>8001</port>
     <db>jdbc:h2:mem:test</db>
+    <persistent>false</persistent>
 </configuration>

@@ -1,18 +1,23 @@
 package fr.sw.img.web;
 
-import fr.sw.fwk.web.*;
+import fr.sw.fwk.common.Configuration;
+import fr.sw.fwk.common.SwException;
 import fr.sw.img.data.ImageDescription;
-import fr.sw.img.inmemory.ImageInMemory;
 import fr.sw.img.service.ImageService;
-import fr.sw.fwk.common.Logger;
+import io.vertx.core.AbstractVerticle;
+import io.vertx.core.buffer.Buffer;
+import io.vertx.core.http.HttpServerRequest;
+import io.vertx.core.http.HttpServerResponse;
+import io.vertx.ext.web.RoutingContext;
 
 import java.io.IOException;
-import java.util.Optional;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Map;
 import java.util.stream.Collectors;
 
-public class ImageHandler extends GenericHandler {
-
-    private final static Logger logger = new Logger(ImageHandler.class);
+public class ImageHandler extends AbstractVerticle {
 
     private static final String JSON_ELEMENT_TEMPLATE = "{\"name\":\"%1$s\",\"url\":\"%2$s\",\"thumbnail\":\"%3$s\"}";
     private static final String JSON_MAIN_TEMPLATE = "{%s}";
@@ -20,75 +25,86 @@ public class ImageHandler extends GenericHandler {
     private static final String HTML_ELEMENT_TEMPLATE = "<p><a href=\"%2$s\"><img src=\"%3$s\" title=\"%1$s\"/></a></p>";
     private static final String HTML_MAIN_TEMPLATE = "<html><head></head><body>%s</body></html>";
 
-    private final ImageService service = new ImageService();
+    private final ImageService service;
 
-    @Override
-    protected void doPost(HttpRequest request, HttpResponse response) throws IOException {
-        Optional<Part> optional = Multiparts.parse(request).stream()
-                .filter(part -> part.hasHeader("filename"))
-                .findFirst();
-
-        if (optional.isPresent()) {
-            saveImage(response, optional.get());
-        } else {
-            response.error404();
-        }
+    public ImageHandler() {
+        service = new ImageService(Configuration.get().isPersistent());
     }
 
-    @Override
-    protected void doGet(HttpRequest request, HttpResponse response) throws IOException {
-        String format = request.getPathElement(0);
-        String name = request.getPathElement(1);
-        ImageDescription image = service.get(name);
+    public void images(RoutingContext routingContext) {
+        service.all();
+        HttpServerRequest request = routingContext.request();
         String accept = request.getHeader("Accept");
-        if (image == null) {
-            if (accept.contains("application/json")) {
-                response.send(json(viewImageList(request, JSON_ELEMENT_TEMPLATE)));
-            } else if (accept.contains("text/html")) {
-                response.send(html(viewImageList(request, HTML_ELEMENT_TEMPLATE)));
-            } else {
-                response.error(501);
-            }
-        } else if ("thumb".equals(format)) {
-            response.download(image.getFileName(), image.getThumbnail());
+        HttpServerResponse response = routingContext.response();
+
+        if (accept.contains("application/json")) {
+            response.end(json(viewImageList(request, JSON_ELEMENT_TEMPLATE)));
+        } else if (accept.contains("text/html")) {
+            response.end(html(viewImageList(request, HTML_ELEMENT_TEMPLATE)));
         } else {
-            if (accept.contains("application/json")) {
-                response.send(viewImage(request, JSON_ELEMENT_TEMPLATE, name));
-            } else if (accept.contains("text/html")) {
-                response.send(html(viewImage(request, HTML_IMG_TEMPLATE, name)) );
-            } else {
-                response.download(image.getFileName(), image.getContent());
-            }
+            response.setStatusCode(501)
+                    .end();
         }
     }
 
+    public void thumbnail(RoutingContext routingContext) {
+        String name = routingContext.request()
+                                    .getParam("name");
+        ImageDescription image = service.get(name);
+        routingContext.response()
+                .end(Buffer.buffer(image.getThumbnail()));
+    }
+
+    public void image(RoutingContext routingContext) {
+        String name = routingContext.request()
+                .getParam("name");
+        ImageDescription image = service.get(name);
+        routingContext.response()
+                .end(Buffer.buffer(image.getContent()));
+    }
+
+    public void imageUpload(RoutingContext routingContext) {
+        Map<String, Object> data = routingContext.data();
+        Buffer body = routingContext.getBody();
+        System.out.println(body.toString());
+        routingContext.response()
+                .setStatusCode(404)
+                .end();
+    }
+
+    private String viewImageList(HttpServerRequest request, String template) {
+        return service.all().stream()
+                .map(image -> viewImage(request, template, image.getFileName()))
+                .collect(Collectors.joining());
+    }
+
+    private String viewImage(HttpServerRequest request, String template, String name) {
+        return String.format(template, name, "/img/" + name, "/thumb/" + name);
+    }
     private String html(String content) {
         return String.format(HTML_MAIN_TEMPLATE, content);
     }
     private String json(String content) {
         return String.format(JSON_MAIN_TEMPLATE, content);
     }
-    private String viewImageList(HttpRequest request, String template) {
-        return service.all().stream()
-                .map(image -> viewImage(request, template, image.getFileName()))
-                .collect(Collectors.joining());
-    }
 
-    private String viewImage(HttpRequest request, String template, String name) {
-        return String.format(template, name, request.getRootURI() + "/img/" + name, request.getRootURI() + "/thumb/" + name);
-    }
 
-    private void saveImage(HttpResponse response, Part part) {
+    public void init() {
+        Path imgDir = FileSystems.getDefault().getPath("./images");
         try {
-            ImageDescription image = new ImageDescription();
-            image.setFileName(part.getHeader("filename"));
-            image.setContent(part.getContent());
-
-            service.createOrUpdate(image);
-
-            response.send("OK: " + image.getFileName());
+            Files.newDirectoryStream(imgDir).forEach(this::saveImg);
         } catch (IOException e) {
-            throw new HttpException(e);
+            e.printStackTrace();
+        }
+    }
+    private void saveImg(Path path) {
+        try {
+            ImageDescription img = new ImageDescription();
+            img.setFileName(path.getFileName().toString());
+            img.setContent(Files.readAllBytes(path));
+            service.createOrUpdate(img);
+        } catch (IOException e) {
+            throw new SwException("Cannot init images", e);
         }
     }
 
