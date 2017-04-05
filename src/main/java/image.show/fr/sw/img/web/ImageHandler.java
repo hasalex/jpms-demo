@@ -1,10 +1,9 @@
 package fr.sw.img.web;
 
+import fr.sw.fwk.common.Logger;
 import fr.sw.fwk.web.*;
 import fr.sw.img.data.ImageDescription;
-import fr.sw.img.inmemory.ImageInMemory;
 import fr.sw.img.service.ImageService;
-import fr.sw.fwk.common.Logger;
 
 import java.io.IOException;
 import java.util.Optional;

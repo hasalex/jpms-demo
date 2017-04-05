@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 mkdir -p src/main/java/image.show/fr/sw/img
 mv src/main/java/fr/sw/img/web src/main/java/image.show/fr/sw/img/web
-mv src/main/java/fr/sw/img/util src/main/java/image.show/fr/sw/img/
 mv src/main/java/fr/sw/img/Main.java src/main/java/image.show/fr/sw/img/
 mv src/main/java/module-info.java src/main/java/image.show/
 
