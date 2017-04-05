@@ -3,6 +3,7 @@ JAVA_HOME=/opt/jdk9
 
 rm -r target/main/exploded/*
 $JAVA_HOME/bin/javac -d target/main/exploded \
+      --module-path dependencies \
       --module-source-path src/main/java/            \
       $(find src/main/java/ -name "*.java")
 cp -r src/main/resources/* target/main/exploded/image.show/
@@ -14,3 +15,4 @@ for dir in target/main/exploded/*; do
         -C $dir .
   fi
 done
+#rm target/main/artifact/image.inmem.jar

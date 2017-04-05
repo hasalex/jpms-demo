@@ -1,30 +1,33 @@
 package fr.sw.fwk.common;
 
+import org.slf4j.LoggerFactory;
+
 public class Logger {
 
     private final String name;
+    private final org.slf4j.Logger slfLogger;
 
     public Logger(Class<?> clazz) {
         super();
         this.name = clazz.getName();
+        slfLogger = LoggerFactory.getLogger(clazz);
     }
 
     public void error(String message, Exception e) {
-        error("ERR: " + format(message, e));
-        error(e);
+        slfLogger.error(message, e);
     }
 
     public void error(Throwable e) {
-        error(e.getMessage());
-        e.printStackTrace();
+        slfLogger.error("", e);
     }
 
     public void error(String message) {
-        System.err.println("ERR: " + format(message));
+        slfLogger.error(message);
+
     }
 
     public void log(String message) {
-        System.out.println("LOG: " + format(message));
+        slfLogger.info(message);
     }
 
     private String format(String text) {

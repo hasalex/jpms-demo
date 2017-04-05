@@ -1,30 +1,31 @@
 package fr.sw.img.service;
 
+import fr.sw.fwk.common.Logger;
+import fr.sw.fwk.common.SwException;
 import fr.sw.fwk.dao.DAO;
 import fr.sw.fwk.dao.DaoException;
 import fr.sw.img.data.ImageDescription;
-import fr.sw.img.db.ImageDB;
-import fr.sw.img.inmemory.ImageInMemory;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.*;
-import java.util.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
+import java.util.ServiceLoader;
 
 public class ImageService {
 
     private final DAO<ImageDescription> dao;
+    private final Logger logger = new Logger(ImageService.class);
 
     public ImageService() {
-        this(false);
-    }
-    public ImageService(boolean persistent) {
-        if (persistent)
-            dao = new ImageDB();
-        else
-            dao = new ImageInMemory();
+        dao = ServiceLoader.load(DAO.class)
+                .findFirst()
+                .orElseThrow(() -> new SwException("DAO not found"));
+        logger.log("DAO : " + dao.getClass().getName());
     }
 
     public void createOrUpdate(ImageDescription image) {

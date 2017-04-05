@@ -3,6 +3,5 @@ module image.db {
     requires sw.common;
     requires image.data;
 
-    exports fr.sw.img.db
-            to image.backend;
+    provides fr.sw.fwk.dao.DAO with fr.sw.img.db.ImageDB;
 }
