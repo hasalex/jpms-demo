@@ -10,7 +10,7 @@ import static org.junit.Assert.assertTrue;
 
 public class ImageServiceTest {
 
-    private ImageService service = new ImageService(new ImageInMemory());
+    private ImageService service = new ImageService(false);
 
     @org.junit.Test
     public void findAll() throws Exception {

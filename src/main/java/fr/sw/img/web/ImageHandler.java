@@ -1,5 +1,6 @@
 package fr.sw.img.web;
 
+import fr.sw.fwk.common.SwException;
 import fr.sw.fwk.web.*;
 import fr.sw.img.data.ImageDescription;
 import fr.sw.img.inmemory.ImageInMemory;
@@ -7,6 +8,9 @@ import fr.sw.img.service.ImageService;
 import fr.sw.fwk.common.Logger;
 
 import java.io.IOException;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -16,9 +20,11 @@ public class ImageHandler extends GenericHandler {
 
     private static final String JSON_ELEMENT_TEMPLATE = "{\"name\":\"%1$s\",\"url\":\"%2$s\",\"thumbnail\":\"%3$s\"}";
     private static final String JSON_MAIN_TEMPLATE = "{%s}";
-    private static final String HTML_IMG_TEMPLATE = "<img src=\"%2$s\" width=\"600\"/>";
-    private static final String HTML_ELEMENT_TEMPLATE = "<p><a href=\"%2$s\"><img src=\"%3$s\" title=\"%1$s\"/></a></p>";
-    private static final String HTML_MAIN_TEMPLATE = "<html><head></head><body>%s</body></html>";
+    private static final String HTML_IMG_TEMPLATE = "<img src=\"%2$s\" width=\"800\"/>";
+    private static final String HTML_ELEMENT_TEMPLATE = "<div><a href=\"%2$s\"><img src=\"%3$s\" title=\"%1$s\"/></a></div>";
+    private static final String HTML_MAIN_TEMPLATE = "<html><head><style>" +
+            " .flex {display: flex; flex-flow: row wrap; justify-content: space-around;}" +
+            "</style></head><body><div class=\"flex\">%s</div></body></html>";
 
     private final ImageService service = new ImageService();
 
@@ -89,6 +95,26 @@ public class ImageHandler extends GenericHandler {
             response.send("OK: " + image.getFileName());
         } catch (IOException e) {
             throw new HttpException(e);
+        }
+    }
+
+    public void init() {
+        // Mountain pictures come from https://fr.wikipedia.org
+        Path imgDir = FileSystems.getDefault().getPath("./images");
+        try {
+            Files.newDirectoryStream(imgDir).forEach(this::saveImg);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    private void saveImg(Path path) {
+        try {
+            ImageDescription img = new ImageDescription();
+            img.setFileName(path.getFileName().toString());
+            img.setContent(Files.readAllBytes(path));
+            service.createOrUpdate(img);
+        } catch (IOException e) {
+            throw new SwException("Cannot init images", e);
         }
     }
 

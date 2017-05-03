@@ -4,11 +4,16 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 import fr.sw.fwk.common.Configuration;
 import fr.sw.fwk.common.Logger;
+import fr.sw.fwk.common.SwException;
 import fr.sw.fwk.web.HttpResponse;
+import fr.sw.img.data.ImageDescription;
 import fr.sw.img.web.ImageHandler;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 public class Main {
 
@@ -34,6 +39,8 @@ public class Main {
         ImageHandler imageHandler = new ImageHandler();
         server.createContext("/img", imageHandler);
         server.createContext("/thumb", imageHandler);
+
+        imageHandler.init();
     }
 
     private static void ping(HttpExchange exchange) throws IOException {
@@ -43,5 +50,4 @@ public class Main {
     private static void version(HttpExchange exchange) throws IOException {
         new HttpResponse(exchange).send("sw-img: " + version + ", jdk: " + System.getProperty("java.version"));
     }
-
 }
