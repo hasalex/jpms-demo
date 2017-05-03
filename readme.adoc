@@ -1,0 +1,12 @@
+= Jigsaw Demo
+
+Java Platform Module System demo would be a more _official_ title, but who cares ?
+
+== Demo at RivieraDev 2017
+
+Abstract : http://rivieradev.com/session/83
+
+== Demo at DevoxxFR 2017 : "Préparez-vous à la modularité selon Java 9"
+
+Abstract : https://cfp.devoxx.fr/2017/talk/KHV-4031/Preparez-vous_a_la_modularite_selon_Java_9)
+Slides : http://prez.sewatech.fr/devoxxfr17-uni/

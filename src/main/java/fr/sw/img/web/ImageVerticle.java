@@ -20,9 +20,11 @@ public class ImageVerticle extends AbstractVerticle {
 
     private static final String JSON_ELEMENT_TEMPLATE = "{\"name\":\"%1$s\",\"url\":\"%2$s\",\"thumbnail\":\"%3$s\"}";
     private static final String JSON_MAIN_TEMPLATE = "{%s}";
-    private static final String HTML_IMG_TEMPLATE = "<img src=\"%2$s\" width=\"600\"/>";
-    private static final String HTML_ELEMENT_TEMPLATE = "<p><a href=\"%2$s\"><img src=\"%3$s\" title=\"%1$s\"/></a></p>";
-    private static final String HTML_MAIN_TEMPLATE = "<html><head></head><body>%s</body></html>";
+    private static final String HTML_IMG_TEMPLATE = "<img src=\"%2$s\" width=\"800\"/>";
+    private static final String HTML_ELEMENT_TEMPLATE = "<div><a href=\"%2$s\"><img src=\"%3$s\" title=\"%1$s\"/></a></div>";
+    private static final String HTML_MAIN_TEMPLATE = "<html><head><style>" +
+            " .flex {display: flex; flex-flow: row wrap; justify-content: space-around;}" +
+            "</style></head><body><div class=\"flex\">%s</div></body></html>";
 
     private final ImageService service;
 

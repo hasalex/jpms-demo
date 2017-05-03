@@ -1,4 +1,7 @@
-= Demo for Devoxx FR 17
+= Demo for JPMS prez
+
+JPMS stands for Java Platform Module System, aka Jigsaw.
+It's the main feature of the Java 9 feature.
 
 == Java 8
 
