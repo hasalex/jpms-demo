@@ -17,9 +17,6 @@ public class ImageService {
 
     private final DAO<ImageDescription> dao;
 
-    public ImageService() {
-        this(false);
-    }
     public ImageService(boolean persistent) {
         if (persistent)
             dao = new ImageDB();

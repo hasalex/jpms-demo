@@ -2,36 +2,25 @@ package fr.sw.fwk.common;
 
 public class Logger {
 
-    private final String name;
+    private final ConcreteLogger concreteLogger;
 
     public Logger(Class<?> clazz) {
-        super();
-        this.name = clazz.getName();
+        concreteLogger = new ConcreteLogger(clazz.getName());
     }
 
-    public void error(String message, Exception e) {
-        error("ERR: " + format(message, e));
-        error(e);
+    public void error(String message, Throwable e) {
+        concreteLogger.error(message, e);
     }
 
     public void error(Throwable e) {
-        error(e.getMessage());
-        e.printStackTrace();
+        concreteLogger.error(e.getMessage(), e);
     }
 
     public void error(String message) {
-        System.err.println("ERR: " + format(message));
+        concreteLogger.error(message);
     }
 
     public void log(String message) {
-        System.out.println("LOG: " + format(message));
-    }
-
-    private String format(String text) {
-        return "" + name + " - " + text;
-    }
-
-    private String format(String message, Exception e) {
-        return format(message) + " -- " + e.getMessage();
+        concreteLogger.info(message);
     }
 }
