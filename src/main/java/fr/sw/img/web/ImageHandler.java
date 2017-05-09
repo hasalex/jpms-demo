@@ -1,22 +1,25 @@
 package fr.sw.img.web;
 
+import fr.sw.fwk.common.Configuration;
+import fr.sw.fwk.common.Logger;
 import fr.sw.fwk.common.SwException;
 import fr.sw.fwk.web.*;
 import fr.sw.img.data.ImageDescription;
-import fr.sw.img.inmemory.ImageInMemory;
 import fr.sw.img.service.ImageService;
-import fr.sw.fwk.common.Logger;
 
 import java.io.IOException;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class ImageHandler extends GenericHandler {
 
-    private final static Logger logger = new Logger(ImageHandler.class);
+    private static final Logger logger = new Logger(ImageHandler.class);
+
+    private static final int MAX_IMAGES = 12;
 
     private static final String JSON_ELEMENT_TEMPLATE = "{\"name\":\"%1$s\",\"url\":\"%2$s\",\"thumbnail\":\"%3$s\"}";
     private static final String JSON_MAIN_TEMPLATE = "{%s}";
@@ -26,7 +29,7 @@ public class ImageHandler extends GenericHandler {
             " .flex {display: flex; flex-flow: row wrap; justify-content: space-around;}" +
             "</style></head><body><div class=\"flex\">%s</div></body></html>";
 
-    private final ImageService service = new ImageService();
+    private final ImageService service = new ImageService(Configuration.get().isPersistent());
 
     @Override
     protected void doPost(HttpRequest request, HttpResponse response) throws IOException {
@@ -61,7 +64,7 @@ public class ImageHandler extends GenericHandler {
             if (accept.contains("application/json")) {
                 response.send(viewImage(request, JSON_ELEMENT_TEMPLATE, name));
             } else if (accept.contains("text/html")) {
-                response.send(html(viewImage(request, HTML_IMG_TEMPLATE, name)) );
+                response.send(html(viewImage(request, HTML_IMG_TEMPLATE, name)));
             } else {
                 response.download(image.getFileName(), image.getContent());
             }
@@ -71,12 +74,15 @@ public class ImageHandler extends GenericHandler {
     private String html(String content) {
         return String.format(HTML_MAIN_TEMPLATE, content);
     }
+
     private String json(String content) {
         return String.format(JSON_MAIN_TEMPLATE, content);
     }
+
     private String viewImageList(HttpRequest request, String template) {
         return service.all().stream()
                 .map(image -> viewImage(request, template, image.getFileName()))
+                .limit(MAX_IMAGES)
                 .collect(Collectors.joining());
     }
 
@@ -101,12 +107,16 @@ public class ImageHandler extends GenericHandler {
     public void init() {
         // Mountain pictures come from https://fr.wikipedia.org
         Path imgDir = FileSystems.getDefault().getPath("./images");
+
         try {
-            Files.newDirectoryStream(imgDir).forEach(this::saveImg);
+            List<Path> list = Files.list(imgDir).collect(Collectors.toList());
+            list.parallelStream()
+                .forEach(this::saveImg);
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new SwException("Cannot init images", e);
         }
     }
+
     private void saveImg(Path path) {
         try {
             ImageDescription img = new ImageDescription();
@@ -114,7 +124,7 @@ public class ImageHandler extends GenericHandler {
             img.setContent(Files.readAllBytes(path));
             service.createOrUpdate(img);
         } catch (IOException e) {
-            throw new SwException("Cannot init images", e);
+            throw new SwException("Cannot init image", e);
         }
     }
 
