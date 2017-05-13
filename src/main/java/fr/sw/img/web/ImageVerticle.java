@@ -8,16 +8,15 @@ import io.vertx.core.AbstractVerticle;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
+import io.vertx.ext.web.FileUpload;
 import io.vertx.ext.web.RoutingContext;
 
 import java.io.IOException;
-import java.nio.file.FileSystems;
 import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.Map;
+import java.nio.file.Paths;
 import java.util.stream.Collectors;
 
-public class ImageHandler extends AbstractVerticle {
+public class ImageVerticle extends AbstractVerticle {
 
     private static final String JSON_ELEMENT_TEMPLATE = "{\"name\":\"%1$s\",\"url\":\"%2$s\",\"thumbnail\":\"%3$s\"}";
     private static final String JSON_MAIN_TEMPLATE = "{%s}";
@@ -27,7 +26,7 @@ public class ImageHandler extends AbstractVerticle {
 
     private final ImageService service;
 
-    public ImageHandler() {
+    public ImageVerticle() {
         service = new ImageService(Configuration.get().isPersistent());
     }
 
@@ -49,7 +48,7 @@ public class ImageHandler extends AbstractVerticle {
 
     public void thumbnail(RoutingContext routingContext) {
         String name = routingContext.request()
-                                    .getParam("name");
+                .getParam("name");
         ImageDescription image = service.get(name);
         routingContext.response()
                 .end(Buffer.buffer(image.getThumbnail()));
@@ -64,12 +63,26 @@ public class ImageHandler extends AbstractVerticle {
     }
 
     public void imageUpload(RoutingContext routingContext) {
-        Map<String, Object> data = routingContext.data();
-        Buffer body = routingContext.getBody();
-        System.out.println(body.toString());
+        routingContext.fileUploads()
+                .stream()
+                .map(this::buildImageDescription)
+                .forEach(service::createOrUpdate);
         routingContext.response()
                 .setStatusCode(404)
                 .end();
+    }
+
+    private ImageDescription buildImageDescription(FileUpload fileUpload) {
+        try {
+            ImageDescription imageDescription = new ImageDescription();
+            imageDescription.setFileName(fileUpload.fileName());
+            imageDescription.setMimeType(fileUpload.contentType());
+            imageDescription.setContent(Files.readAllBytes(Paths.get(fileUpload.uploadedFileName())));
+
+            return imageDescription;
+        } catch (IOException e) {
+            throw new SwException(e);
+        }
     }
 
     private String viewImageList(HttpServerRequest request, String template) {
@@ -81,31 +94,23 @@ public class ImageHandler extends AbstractVerticle {
     private String viewImage(HttpServerRequest request, String template, String name) {
         return String.format(template, name, "/img/" + name, "/thumb/" + name);
     }
+
     private String html(String content) {
         return String.format(HTML_MAIN_TEMPLATE, content);
     }
+
     private String json(String content) {
         return String.format(JSON_MAIN_TEMPLATE, content);
     }
 
 
     public void init() {
-        Path imgDir = FileSystems.getDefault().getPath("./images");
-        try {
-            Files.newDirectoryStream(imgDir).forEach(this::saveImg);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-    private void saveImg(Path path) {
-        try {
-            ImageDescription img = new ImageDescription();
-            img.setFileName(path.getFileName().toString());
-            img.setContent(Files.readAllBytes(path));
-            service.createOrUpdate(img);
-        } catch (IOException e) {
-            throw new SwException("Cannot init images", e);
-        }
+//        Path imgDir = FileSystems.getDefault().getPath("./images");
+//        try {
+//            Files.newDirectoryStream(imgDir).forEach(this::saveImg);
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
     }
 
 }

@@ -2,11 +2,13 @@ package fr.sw.img;
 
 import fr.sw.fwk.common.Configuration;
 import fr.sw.fwk.common.Logger;
-import fr.sw.img.web.ImageHandler;
+import fr.sw.img.web.ImageVerticle;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Vertx;
+import io.vertx.core.VertxOptions;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.StaticHandler;
 
 public class Main extends AbstractVerticle {
@@ -23,8 +25,8 @@ public class Main extends AbstractVerticle {
     @Override
     public void start() {
         Configuration configuration = Configuration.get();
-        ImageHandler imageHandler = new ImageHandler();
-        imageHandler.init();
+        ImageVerticle imageVerticle = new ImageVerticle();
+        imageVerticle.init();
 
         Router router = Router.router(vertx);
 
@@ -32,14 +34,22 @@ public class Main extends AbstractVerticle {
         router.get("/ping").handler(this::ping);
         router.get("/version").handler(this::version);
 
-        router.get("/img/:name").handler(imageHandler::image);
-        router.get("/img").handler(imageHandler::images);
-        router.get("/thumb/:name").handler(imageHandler::thumbnail);
+        router.get("/img/:name").handler(imageVerticle::image);
+        router.get("/img").handler(imageVerticle::images);
+        router.get("/thumb/:name").handler(imageVerticle::thumbnail);
+
+        router.route().handler(
+                BodyHandler.create()
+                        .setDeleteUploadedFilesOnEnd(true)
+                        .setUploadsDirectory(".vertx/uploads")); // avoid null body
+        router.post("/img").handler(imageVerticle::imageUpload);
 
         // otherwise serve static pages
         router.route().handler(StaticHandler.create());
 
-        vertx.createHttpServer().requestHandler(router::accept).listen(configuration.getPort());
+        vertx.createHttpServer()
+                .requestHandler(router::accept)
+                .listen(configuration.getPort());
         logger.log("Listen on port " + configuration.getPort());
     }
 
@@ -55,7 +65,11 @@ public class Main extends AbstractVerticle {
     }
 
     public static void main(String[] args) {
-        Vertx vertx = Vertx.vertx();
+        VertxOptions options = new VertxOptions();
+        // Cool for debug, bad in production
+        options.setBlockedThreadCheckInterval(1000*60*60);
+
+        Vertx vertx = Vertx.vertx(options);
         vertx.deployVerticle(new Main());
     }
 }
