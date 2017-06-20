@@ -13,6 +13,9 @@ import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.*;
 import java.util.List;
+import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.toList;
 
 public class ImageService {
 
@@ -68,6 +71,8 @@ public class ImageService {
     public List<ImageDescription> all() {
         List<ImageDescription> images = dao.findAll();
         Collections.shuffle(images);
-        return images;
+        return images.stream()
+                    .limit(3)
+                    .collect(toList());
     }
 }
