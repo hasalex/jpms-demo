@@ -22,8 +22,8 @@ $JAVA_HOME/bin/jar                                 \
 #  if [ -d $dir ]; then
 #    $JAVA_HOME/bin/jar                                   \
 #        --create                                         \
-#        --file target/artifact/$(basename $dir).jar \
+#        --file target/$(basename $dir).jar \
 #        -C $dir .
 #  fi
 #done
-echo Jar file ready in target/artifact
+echo Jar file ready in target

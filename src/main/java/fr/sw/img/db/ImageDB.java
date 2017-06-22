@@ -10,6 +10,7 @@ import sun.misc.BASE64Encoder;
 import java.io.IOException;
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 
 public class ImageDB implements DAO<ImageDescription> {
@@ -137,15 +138,15 @@ public class ImageDB implements DAO<ImageDescription> {
     }
 
     private String toBase64(byte[] content) {
-        return new BASE64Encoder().encodeBuffer(content);
-//        return Base64.getEncoder().encodeToString(content);
+//        return new BASE64Encoder().encodeBuffer(content);
+        return Base64.getEncoder().encodeToString(content);
     }
     private byte[] fromBase64(String encoded) {
-        try {
-            return new BASE64Decoder().decodeBuffer(encoded);
-        } catch (IOException e) {
-            throw new DaoException(e);
-        }
-//        return Base64.getDecoder().decode(encoded);
+//        try {
+//            return new BASE64Decoder().decodeBuffer(encoded);
+//        } catch (IOException e) {
+//            throw new DaoException(e);
+//        }
+        return Base64.getDecoder().decode(encoded);
     }
 }
