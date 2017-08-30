@@ -23,7 +23,7 @@ public class Main {
     public static void main(String[] args) throws IOException {
         Configuration configuration = Configuration.get();
 
-        HttpServer server = HttpServer.create(new InetSocketAddress(configuration.getPort()), 0);
+        HttpServer server = HttpServer.create(new InetSocketAddress("127.0.0.1", configuration.getPort()), 0);
 
         registerContexts(server);
 

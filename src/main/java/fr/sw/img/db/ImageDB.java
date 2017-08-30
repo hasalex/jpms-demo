@@ -4,7 +4,10 @@ import fr.sw.fwk.common.Configuration;
 import fr.sw.fwk.dao.DAO;
 import fr.sw.fwk.dao.DaoException;
 import fr.sw.img.data.ImageDescription;
+import sun.misc.BASE64Decoder;
+import sun.misc.BASE64Encoder;
 
+import java.io.IOException;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.Base64;
@@ -135,15 +138,15 @@ public class ImageDB implements DAO<ImageDescription> {
     }
 
     private String toBase64(byte[] content) {
-//        return new BASE64Encoder().encodeBuffer(content);
-        return Base64.getEncoder().encodeToString(content);
+        return new BASE64Encoder().encodeBuffer(content);
+//        return Base64.getEncoder().encodeToString(content);
     }
     private byte[] fromBase64(String encoded) {
-//        try {
-//            return new BASE64Decoder().decodeBuffer(encoded);
-//        } catch (IOException e) {
-//            throw new DaoException(e);
-//        }
-        return Base64.getDecoder().decode(encoded);
+        try {
+            return new BASE64Decoder().decodeBuffer(encoded);
+        } catch (IOException e) {
+            throw new DaoException(e);
+        }
+//        return Base64.getDecoder().decode(encoded);
     }
 }
