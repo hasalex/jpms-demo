@@ -19,7 +19,7 @@ public class ImageHandler extends GenericHandler {
 
     private static final Logger logger = new Logger(ImageHandler.class);
 
-    private static final int MAX_IMAGES = 12;
+    private static final int MAX_IMAGES = 6;
 
     private static final String JSON_ELEMENT_TEMPLATE = "{\"name\":\"%1$s\",\"url\":\"%2$s\",\"thumbnail\":\"%3$s\"}";
     private static final String JSON_MAIN_TEMPLATE = "{%s}";

@@ -11,6 +11,7 @@ import fr.sw.img.web.ImageHandler;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.net.URI;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -33,6 +34,7 @@ public class Main {
     }
 
     private static void registerContexts(HttpServer server) {
+        server.createContext("/", Main::redirect);
         server.createContext("/ping", Main::ping);
         server.createContext("/version", Main::version);
 
@@ -49,5 +51,10 @@ public class Main {
 
     private static void version(HttpExchange exchange) throws IOException {
         new HttpResponse(exchange).send("sw-img: " + version + ", jdk: " + System.getProperty("java.version"));
+    }
+
+    private static void redirect(HttpExchange exchange) throws IOException {
+        exchange.getResponseHeaders().add("Location", "/img");
+        new HttpResponse(exchange).error(302);
     }
 }
