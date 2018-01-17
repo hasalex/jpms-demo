@@ -1,5 +1,5 @@
 #!/bin/bash
-#JAVA_HOME=/opt/jdk9
+JAVA_HOME=/opt/jdk9
 
 java_version=$($JAVA_HOME/bin/java -fullversion 2>&1 | cut -d '"' -f 2)
 

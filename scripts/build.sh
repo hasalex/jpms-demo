@@ -1,5 +1,5 @@
 #!/bin/bash
-#JAVA_HOME=/opt/jdk9
+JAVA_HOME=/opt/jdk9
 
 [ -d target ] && rm -rf target/*
 mkdir -p target/exploded

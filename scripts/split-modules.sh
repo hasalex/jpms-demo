@@ -1,35 +1,47 @@
 #!/usr/bin/env bash
-echo Creating module image.main
-mkdir -p src/main/java/image.main/fr/sw/img
-mv src/main/java/fr/sw/img/web src/main/java/image.main/fr/sw/img/web
-mv src/main/java/fr/sw/img/Main.java src/main/java/image.main/fr/sw/img/
-mv src/main/java/module-info.java src/main/java/image.main/
+module_prefix=fr.sewatech
+module_name=$module_prefix.image.main
+echo Creating module $module_name
+mkdir -p src/main/java/$module_name/fr/sw/img
+mv src/main/java/fr/sw/img/web src/main/java/$module_name/fr/sw/img/web
+mv src/main/java/fr/sw/img/Main.java src/main/java/$module_name/fr/sw/img/
+mv src/main/java/module-info.java src/main/java/$module_name/
 
-echo Creating module image.data
-mkdir -p src/main/java/image.data/fr/sw/img
-mv src/main/java/fr/sw/img/data src/main/java/image.data/fr/sw/img/
-echo "module image.data {
-    requires sw.common;
-}" > src/main/java/image.data/module-info.java
+module_name=$module_prefix.image.data
+echo Creating module $module_name
+mkdir -p src/main/java/$module_name/fr/sw/img
+mv src/main/java/fr/sw/img/data src/main/java/$module_name/fr/sw/img/
+echo "module $module_name {
+    requires $module_prefix.common;
 
-echo Creating module image.backend
-mkdir -p src/main/java/image.backend/fr/sw/img
-mv src/main/java/fr/sw/img/* src/main/java/image.backend/fr/sw/img/
-echo "module image.backend {
+    exports fr.sw.img.data;
+}" > src/main/java/$module_name/module-info.java
+
+module_name=$module_prefix.image.backend
+echo Creating module $module_name
+mkdir -p src/main/java/$module_name/fr/sw/img
+mv src/main/java/fr/sw/img/* src/main/java/$module_name/fr/sw/img/
+echo "module $module_name {
     requires java.sql;
     requires java.desktop;
+    requires $module_prefix.common;
+    requires $module_prefix.image.data;
 
-    requires sw.common;
-    requires image.data;
-}" > src/main/java/image.backend/module-info.java
+    exports fr.sw.img.service;
+}" > src/main/java/$module_name/module-info.java
 
-echo Creating module image.common
-mkdir -p src/main/java/sw.common/fr/sw/fwk
-mv src/main/java/fr/sw/fwk/* src/main/java/sw.common/fr/sw/fwk/
-echo "open module sw.common {
+module_name=$module_prefix.common
+echo Creating module $module_name
+mkdir -p src/main/java/$module_name/fr/sw/fwk
+mv src/main/java/fr/sw/fwk/* src/main/java/$module_name/fr/sw/fwk/
+echo "open module $module_name {
     requires jdk.httpserver;
     requires java.xml.bind;
-}" > src/main/java/sw.common/module-info.java
+
+    exports fr.sw.fwk.common;
+    exports fr.sw.fwk.dao;
+    exports fr.sw.fwk.web;
+}" > src/main/java/$module_name/module-info.java
 
 rm -r src/main/java/fr
 echo Done
